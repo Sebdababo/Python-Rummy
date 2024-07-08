@@ -50,7 +50,7 @@ class Player:
 class RummyGame:
     def __init__(self):
         self.deck = Deck()
-        self.players = [Player("Human"), Player("Bot")]
+        self.players = [Player("Player 1"), Player("Player 2")]
         self.discard_pile = []
 
     def deal_initial_hands(self):
@@ -69,7 +69,7 @@ class RummyGame:
         
         # Check for run
         if all(card.suit == cards[0].suit for card in cards):
-            ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
+            ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
             card_ranks = [ranks.index(card.rank) for card in cards]
             card_ranks.sort()
             return all(card_ranks[i] == card_ranks[i-1] + 1 for i in range(1, len(card_ranks)))
@@ -77,17 +77,41 @@ class RummyGame:
         return False
 
     def play_turn(self, player):
-        # Draw a card
-        if random.choice([True, False]) and self.discard_pile:
+        print(f"\n{player.name}'s turn:")
+        print("Your hand:", " ".join(card.abbr for card in player.hand))
+        print("Top of discard pile:", self.discard_pile[-1].abbr if self.discard_pile else "Empty")
+        
+        # Player draws a card
+        while True:
+            draw_from = input("Draw from deck (d) or discard pile (p): ").lower()
+            if draw_from in ['d', 'p']:
+                break
+            print("Invalid input. Please try again.")
+        
+        if draw_from == 'p' and self.discard_pile:
             card = self.discard_pile.pop()
+            print(f"You drew {card.abbr} from the discard pile.")
         else:
+            if draw_from == 'p' and not self.discard_pile:
+                print("Discard pile is empty. Drawing from deck instead.")
             card = self.deck.draw()
+            print(f"You drew a card from the deck.")
         player.draw(card)
-
-        # Simple bot logic: discard a random card
-        discard = random.choice(player.hand)
+        
+        # Player discards a card
+        print("Your hand:", " ".join(card.abbr for card in player.hand))
+        while True:
+            discard_input = input("Enter the index of the card to discard: ")
+            try:
+                discard_index = int(discard_input)
+                discard = player.hand[discard_index]
+                break
+            except (ValueError, IndexError):
+                print("Invalid input. Please enter a valid index.")
+        
         player.discard(discard)
         self.discard_pile.append(discard)
+        print(f"You discarded {discard.abbr}")
 
     def check_winner(self, player):
         # Check if all cards form valid melds
@@ -113,51 +137,7 @@ class RummyGame:
 
         while True:
             player = self.players[current_player]
-            print(f"\n{player.name}'s turn:")
-            
-            if player.name == "Human":
-                print("Your hand:", " ".join(card.abbr for card in player.hand))
-                print("Top of discard pile:", self.discard_pile[-1].abbr if self.discard_pile else "Empty")
-                
-                # Human player logic
-                while True:
-                    draw_from = input("Draw from deck (d), discard pile (p), or type 'exit' to quit: ").lower()
-                    if draw_from == 'exit':
-                        print("Thanks for playing!")
-                        return
-                    if draw_from in ['d', 'p']:
-                        break
-                    print("Invalid input. Please try again.")
-                
-                if draw_from == 'p' and self.discard_pile:
-                    card = self.discard_pile.pop()
-                    print(f"You drew {card.abbr} from the discard pile.")
-                else:
-                    if draw_from == 'p' and not self.discard_pile:
-                        print("Discard pile is empty. Drawing from deck instead.")
-                    card = self.deck.draw()
-                    print(f"You drew a card from the deck.")
-                player.draw(card)
-                
-                print("Your hand:", " ".join(f"{i}: {card.abbr}" for i, card in enumerate(player.hand)))
-                while True:
-                    discard_input = input("Enter the index of the card to discard or 'exit' to quit: ")
-                    if discard_input.lower() == 'exit':
-                        print("Thanks for playing!")
-                        return
-                    try:
-                        discard_index = int(discard_input)
-                        discard = player.hand[discard_index]
-                        break
-                    except (ValueError, IndexError):
-                        print("Invalid input. Please enter a valid index.")
-                
-                player.discard(discard)
-                self.discard_pile.append(discard)
-                print(f"You discarded {discard.abbr}")
-            else:
-                self.play_turn(player)
-                print(f"Bot discarded {self.discard_pile[-1].abbr}")
+            self.play_turn(player)
 
             if self.check_winner(player):
                 print(f"\n{player.name} wins!")
