@@ -2,7 +2,9 @@ import random
 import itertools
 
 class Card:
+    # Define the symbols for each suit
     SUIT_SYMBOLS = {'Hearts': '♥', 'Diamonds': '♦', 'Clubs': '♣', 'Spades': '♠'}
+    # Define the order of ranks
     RANK_ORDER = {'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13}
 
     def __init__(self, suit, rank):
@@ -11,55 +13,67 @@ class Card:
         self.abbr = self.get_abbreviation()
 
     def get_abbreviation(self):
+        # Get the abbreviation for the card based on its rank and suit
         rank_abbr = self.rank[0] if self.rank != '10' else '10'
         return f"{rank_abbr}{self.SUIT_SYMBOLS[self.suit]}"
 
     def __str__(self):
+        # Return a string representation of the card
         return f"{self.rank} of {self.suit}"
 
     def __lt__(self, other):
+        # Compare two cards based on their suit and rank
         if self.suit != other.suit:
             return list(self.SUIT_SYMBOLS.keys()).index(self.suit) < list(self.SUIT_SYMBOLS.keys()).index(other.suit)
         return self.RANK_ORDER[self.rank[0] if self.rank != '10' else '10'] < self.RANK_ORDER[other.rank[0] if other.rank != '10' else '10']
 
 class Deck:
     def __init__(self):
+        # Create a deck of cards by combining all suits and ranks
         suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
         ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
         self.cards = [Card(suit, rank) for suit in suits for rank in ranks]
         random.shuffle(self.cards)
 
     def draw(self):
+        # Draw a card from the deck
         return self.cards.pop() if self.cards else None
 
 class Player:
     def __init__(self, name):
+        # Initialize a player with a name and an empty hand
         self.name = name
         self.hand = []
 
     def draw(self, card):
+        # Add a card to the player's hand and sort the hand
         self.hand.append(card)
         self.sort_hand()
 
     def discard(self, card):
+        # Remove a card from the player's hand
         self.hand.remove(card)
 
     def sort_hand(self):
+        # Sort the player's hand based on the card's suit and rank
         self.hand.sort()
 
 class RummyGame:
     def __init__(self):
+        # Initialize the game with a deck, players, and a discard pile
         self.deck = Deck()
         self.players = [Player("Player 1"), Player("Player 2")]
         self.discard_pile = []
 
     def deal_initial_hands(self):
-        for _ in range(7):
+        # Deal 10 cards to each player and place one card on the discard pile
+        for _ in range(10):
             for player in self.players:
                 player.draw(self.deck.draw())
         self.discard_pile.append(self.deck.draw())
 
     def is_valid_meld(self, cards):
+        # Check if a group of cards form a valid meld (set or run)
         if len(cards) < 3:
             return False
         
@@ -67,7 +81,7 @@ class RummyGame:
         if all(card.rank == cards[0].rank for card in cards):
             return True
         
-        # Check for run
+        # Check for sequence
         if all(card.suit == cards[0].suit for card in cards):
             ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
             card_ranks = [ranks.index(card.rank) for card in cards]
@@ -77,6 +91,7 @@ class RummyGame:
         return False
 
     def get_input(self, prompt):
+        # Get user input with a prompt and handle the 'exit' command
         user_input = input(prompt)
         if user_input.lower() == 'exit':
             print("Game stopped. Thanks for playing!")
@@ -84,6 +99,7 @@ class RummyGame:
         return user_input
 
     def play_turn(self, player):
+        # Play a turn for a player
         print(f"\n{player.name}'s turn:")
         print("Your hand:", " ".join(card.abbr for card in player.hand))
         print("Top of discard pile:", self.discard_pile[-1].abbr if self.discard_pile else "Empty")
@@ -120,7 +136,7 @@ class RummyGame:
         print(f"You discarded {discard.abbr}")
 
     def check_winner(self, player):
-        # Check if all cards form valid melds
+        # Check if a player has won the game by forming valid melds with all cards in their hand
         temp_hand = player.hand.copy()
         while temp_hand:
             found_meld = False
@@ -138,6 +154,7 @@ class RummyGame:
         return True
 
     def play_game(self):
+        # Play the game until a player wins
         self.deal_initial_hands()
         current_player = 0
 
@@ -154,5 +171,6 @@ class RummyGame:
         print("Game over. Thanks for playing!")
 
 if __name__ == "__main__":
+    # Create a RummyGame object and start the game
     game = RummyGame()
     game.play_game()
