@@ -76,6 +76,13 @@ class RummyGame:
 
         return False
 
+    def get_input(self, prompt):
+        user_input = input(prompt)
+        if user_input.lower() == 'exit':
+            print("Game stopped. Thanks for playing!")
+            exit()
+        return user_input
+
     def play_turn(self, player):
         print(f"\n{player.name}'s turn:")
         print("Your hand:", " ".join(card.abbr for card in player.hand))
@@ -83,7 +90,7 @@ class RummyGame:
         
         # Player draws a card
         while True:
-            draw_from = input("Draw from deck (d) or discard pile (p): ").lower()
+            draw_from = self.get_input("Draw from deck (d) or discard pile (p): ").lower()
             if draw_from in ['d', 'p']:
                 break
             print("Invalid input. Please try again.")
@@ -95,19 +102,18 @@ class RummyGame:
             if draw_from == 'p' and not self.discard_pile:
                 print("Discard pile is empty. Drawing from deck instead.")
             card = self.deck.draw()
-            print(f"You drew a card from the deck.")
+            print(f"You drew {card.abbr} from the deck.")
         player.draw(card)
         
         # Player discards a card
         print("Your hand:", " ".join(card.abbr for card in player.hand))
         while True:
-            discard_input = input("Enter the index of the card to discard: ")
-            try:
-                discard_index = int(discard_input)
-                discard = player.hand[discard_index]
+            discard_input = self.get_input("Enter the abbreviation of the card to discard: ")
+            matching_cards = [card for card in player.hand if card.abbr == discard_input]
+            if matching_cards:
+                discard = matching_cards[0]
                 break
-            except (ValueError, IndexError):
-                print("Invalid input. Please enter a valid index.")
+            print("Invalid input. Please enter a valid card abbreviation from your hand.")
         
         player.discard(discard)
         self.discard_pile.append(discard)
